@@ -176,19 +176,192 @@ https://engineeringxpert.com/wp-content/uploads/2022/04/26.png
 15. click on debug and simulate using simulation as shown below 
 
 ![image](https://user-images.githubusercontent.com/36288975/233856904-99eb708a-c907-4595-9025-c9dbd89b8879.png)
-
-## CIRCUIT DIAGRAM 
  
 
 ## STM 32 CUBE PROGRAM :
 
+```python
+#include "main.h"
+#include "lcd.h"
+#include <stdbool.h>
 
+bool col1, col2, col3, col4;
+
+Lcd_HandleTypeDef lcd;
+
+void SystemClock_Config(void);
+static void MX_GPIO_Init(void);
+void key(void);
+
+int main(void)
+{
+    HAL_Init();
+
+    SystemClock_Config();
+
+    MX_GPIO_Init();
+
+    /* LCD Initialization */
+    Lcd_PortType ports[] = {GPIOA, GPIOA, GPIOA, GPIOA};
+    Lcd_PinType pins[] = {GPIO_PIN_3, GPIO_PIN_2, GPIO_PIN_1, GPIO_PIN_0};
+
+    lcd = Lcd_create(
+            ports,
+            pins,
+            GPIOB,
+            GPIO_PIN_0,
+            GPIOB,
+            GPIO_PIN_1,
+            LCD_4_BIT_MODE
+          );
+
+    Lcd_clear(&lcd);
+
+    while (1)
+    {
+        key();
+    }
+}
+
+void key(void)
+{
+    /* ROW 1 */
+    HAL_GPIO_WritePin(GPIOC, GPIO_PIN_0, GPIO_PIN_RESET);
+    HAL_GPIO_WritePin(GPIOC,
+                      GPIO_PIN_1 |
+                      GPIO_PIN_2 |
+                      GPIO_PIN_3,
+                      GPIO_PIN_SET);
+
+    col1 = HAL_GPIO_ReadPin(GPIOC, GPIO_PIN_4);
+    col2 = HAL_GPIO_ReadPin(GPIOC, GPIO_PIN_5);
+    col3 = HAL_GPIO_ReadPin(GPIOC, GPIO_PIN_6);
+    col4 = HAL_GPIO_ReadPin(GPIOC, GPIO_PIN_7);
+
+    if(!col1)
+    {
+        Lcd_clear(&lcd);
+        Lcd_string(&lcd, "KEY 7");
+    }
+
+    if(!col2)
+    {
+        Lcd_clear(&lcd);
+        Lcd_string(&lcd, "KEY 8");
+    }
+
+    if(!col3)
+    {
+        Lcd_clear(&lcd);
+        Lcd_string(&lcd, "KEY 9");
+    }
+
+    if(!col4)
+    {
+        Lcd_clear(&lcd);
+        Lcd_string(&lcd, "KEY A");
+    }
+
+    HAL_Delay(200);
+}
+
+void SystemClock_Config(void)
+{
+    RCC_OscInitTypeDef RCC_OscInitStruct = {0};
+    RCC_ClkInitTypeDef RCC_ClkInitStruct = {0};
+
+    __HAL_RCC_PWR_CLK_ENABLE();
+    __HAL_PWR_VOLTAGESCALING_CONFIG(PWR_REGULATOR_VOLTAGE_SCALE2);
+
+    RCC_OscInitStruct.OscillatorType = RCC_OSCILLATORTYPE_HSI;
+    RCC_OscInitStruct.HSIState = RCC_HSI_ON;
+    RCC_OscInitStruct.HSICalibrationValue = RCC_HSICALIBRATION_DEFAULT;
+    RCC_OscInitStruct.PLL.PLLState = RCC_PLL_NONE;
+
+    HAL_RCC_OscConfig(&RCC_OscInitStruct);
+
+    RCC_ClkInitStruct.ClockType = RCC_CLOCKTYPE_HCLK |
+                                  RCC_CLOCKTYPE_SYSCLK |
+                                  RCC_CLOCKTYPE_PCLK1 |
+                                  RCC_CLOCKTYPE_PCLK2;
+
+    RCC_ClkInitStruct.SYSCLKSource = RCC_SYSCLKSOURCE_HSI;
+    RCC_ClkInitStruct.AHBCLKDivider = RCC_SYSCLK_DIV1;
+    RCC_ClkInitStruct.APB1CLKDivider = RCC_HCLK_DIV1;
+    RCC_ClkInitStruct.APB2CLKDivider = RCC_HCLK_DIV1;
+
+    HAL_RCC_ClockConfig(&RCC_ClkInitStruct, FLASH_LATENCY_0);
+}
+
+static void MX_GPIO_Init(void)
+{
+    GPIO_InitTypeDef GPIO_InitStruct = {0};
+
+    __HAL_RCC_GPIOC_CLK_ENABLE();
+    __HAL_RCC_GPIOA_CLK_ENABLE();
+    __HAL_RCC_GPIOB_CLK_ENABLE();
+
+    /* ROW Pins */
+    HAL_GPIO_WritePin(GPIOC,
+                      GPIO_PIN_0 |
+                      GPIO_PIN_1 |
+                      GPIO_PIN_2 |
+                      GPIO_PIN_3,
+                      GPIO_PIN_SET);
+
+    GPIO_InitStruct.Pin = GPIO_PIN_0 |
+                          GPIO_PIN_1 |
+                          GPIO_PIN_2 |
+                          GPIO_PIN_3;
+
+    GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
+    GPIO_InitStruct.Pull = GPIO_NOPULL;
+    GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
+
+    HAL_GPIO_Init(GPIOC, &GPIO_InitStruct);
+
+    /* COLUMN Pins */
+    GPIO_InitStruct.Pin = GPIO_PIN_4 |
+                          GPIO_PIN_5 |
+                          GPIO_PIN_6 |
+                          GPIO_PIN_7;
+
+    GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
+    GPIO_InitStruct.Pull = GPIO_PULLUP;
+
+    HAL_GPIO_Init(GPIOC, &GPIO_InitStruct);
+
+    /* LCD Data Pins */
+    GPIO_InitStruct.Pin = GPIO_PIN_0 |
+                          GPIO_PIN_1 |
+                          GPIO_PIN_2 |
+                          GPIO_PIN_3;
+
+    GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
+    GPIO_InitStruct.Pull = GPIO_NOPULL;
+    GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
+
+    HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
+
+    /* LCD Control Pins */
+    GPIO_InitStruct.Pin = GPIO_PIN_0 |
+                          GPIO_PIN_1;
+
+    HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
+}
+```
 
 ## Output screen shots of proteus  :
  
- 
+<img width="1919" height="1199" alt="Screenshot 2026-05-22 201629" src="https://github.com/user-attachments/assets/c6051302-a039-4b0a-b1ca-6c959f3dc056" />
+
+<img width="1919" height="1195" alt="Screenshot 2026-05-22 201448" src="https://github.com/user-attachments/assets/20d4bb30-6373-4b06-bff5-9de2330f2359" />
+
+ <img width="1919" height="1199" alt="image" src="https://github.com/user-attachments/assets/2f2772fd-28aa-4925-8ada-53600636366a" />
+
  ## CIRCUIT DIAGRAM (EXPORT THE GRAPHICS TO PDF AND ADD THE SCREEN SHOT HERE): 
  
- 
+<img width="1439" height="908" alt="image" src="https://github.com/user-attachments/assets/aba5abd4-b6e6-433b-a8f5-fcf9696c7cd3" />
+
 ## Result :
 Interfacing a 4x4 keypad with ARM microcontroller are simulated in proteus and the results are verified.
